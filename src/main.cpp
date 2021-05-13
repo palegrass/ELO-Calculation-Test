@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include "json.hpp"
@@ -13,7 +15,7 @@ using json = nlohmann::json;
 struct Player
 {
 	std::string id = "player";
-	float elo = 1500;
+	double elo = 1500;
 	int placement = 0;
 
 	friend std::ostream& operator<<(std::ostream& output, const Player& p);
@@ -28,7 +30,7 @@ struct Player
 std::ostream& operator<<(std::ostream& output, const Player &p)
 {
 	output << "Player ID: " << p.id << std::endl;
-	output << "Player ELO: " << p.elo << std::endl;
+	output << "Player Elo: " << p.elo << std::endl;
 	output << "Player Placement: " << p.placement << std::endl;
 
 	return output;
@@ -41,7 +43,6 @@ struct Config
 {
 	int weight;
 	bool mega;
-	bool draw;
 	bool ask_for_confirmation;
 	std::string input_file;
 	std::string output_file;
@@ -121,7 +122,6 @@ void from_json(const json& j, Config& c)
 {
 	j.at("weight").get_to(c.weight);
 	j.at("mega").get_to(c.mega);
-	j.at("draw").get_to(c.draw);
 	j.at("ask_for_confirmation").get_to(c.ask_for_confirmation);
 	j.at("input_file").get_to(c.input_file);
 	j.at("output_file").get_to(c.output_file);
@@ -134,10 +134,78 @@ void from_json(const json& j, Config& c)
  */
 void split_pot(std::vector<Player>& participants, const Config& config)
 {
-	// TODO: Implement calculation
+	const char placementCount = config.mega ? 10 : 3;
+	std::vector<double> ratio = {0.7, 0.2, 0.1};
+	if(config.mega)
+	{
+		ratio = {0.4, 0.2, 0.15, 0.1, 0.05, 0.02, 0.02, 0.02, 0.02, 0.02};
+	}
+	
+	bool draw = false;
+
+	{
+		bool _winner;
+		for(const auto& p : participants)
+		{
+			if(p.placement == 1)
+			{
+				if(_winner)
+					draw = true;
+				else
+					_winner = true;
+			}
+		}
+	}
+
+	if(draw)
+	{
+		const double _sum = ratio[0] + ratio[1];
+		ratio[0] = _sum * 0.5;
+		ratio[1] = _sum * 0.5;
+	}
+
+	std::vector<Player> winners;
+	for(const auto& p : participants)
+	{
+		if(p.placement > placementCount || p.placement < 1)
+			continue;
+		winners.push_back(p);
+	}
+	
+	for(auto& w : winners)
+	{
+		if(w.placement == 1 && !draw)
+			continue;
+		w.elo -= config.weight;
+	}
+
+	// NOTE: Standard deviation or averageElo may be set to change, but for now, it's hardcoded
+	// int standardDeviation = 200;
+	// double averageElo = 1500;
+	std::vector<double> eloGain;
+	for(char i = 0; i < static_cast<char>(winners.size()); ++i)
+	{
+		eloGain.push_back(config.weight * ratio[i]);
+		for(char j = 0; j < static_cast<char>(participants.size() + draw - 1); ++j)
+			winners[i].elo += (eloGain[i] / (pow(2, (winners[i].elo - 1500) / 200))); 
+	}
+
+	for(auto& p : participants)
+	{
+		if(p.placement > placementCount || p.placement < 1)
+			continue;
+		
+		for(const auto& w : winners)
+		{
+			if(p.placement == w.placement)
+			{
+				p.elo = w.elo;
+			}
+		}
+	}
 }
 
-int main(int argc, char* argv[])
+int main()
 {
 	const Config config = parse_json("config.json");
 
@@ -169,7 +237,6 @@ int main(int argc, char* argv[])
 		}
 
 		// Ask for confirmation before updating the data to the output json file
-
 		if(!confirm_text("Apply ELO changes? [y/n]: "))
 		{
 			return 0;
