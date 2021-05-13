@@ -8,6 +8,10 @@ First, you should configure the config file to your liking, and note that an out
 
 Weight - A signed integer defining the volatility of the elo.
 
+Standard Deviation - An integer that stores the standard deviation (unsure if this should ever be changed).
+
+Average Elo - A double that stores the average elo (unsure if this should ever be changed).
+
 Mega - A boolean defining whether the game is a mega THC or not.
 
 Ask for confirmation - A boolean that determines whether the console window will do anything besides updating the elo.
