@@ -1,3 +1,3 @@
 @ECHO off
 
-g++ ./src/main.cpp -o ./bin/elo.exe
+g++ ./src/*.cpp -Wall -o ./bin/elo.exe -static

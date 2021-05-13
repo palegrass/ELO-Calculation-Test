@@ -17,6 +17,7 @@ struct Player
 	std::string id = "player";
 	double elo = 1500;
 	int placement = 0;
+	bool has_placed = false;
 
 	friend std::ostream& operator<<(std::ostream& output, const Player& p);
 };
@@ -32,6 +33,8 @@ std::ostream& operator<<(std::ostream& output, const Player &p)
 	output << "Player ID: " << p.id << std::endl;
 	output << "Player Elo: " << p.elo << std::endl;
 	output << "Player Placement: " << p.placement << std::endl;
+	const std::string _temp = p.has_placed ? "true" : "false";
+	output << "Player Has Placed?: " << _temp << std::endl;
 
 	return output;
 }
@@ -42,6 +45,8 @@ std::ostream& operator<<(std::ostream& output, const Player &p)
 struct Config
 {
 	int weight;
+	int standard_deviation;
+	double average_elo;
 	bool mega;
 	bool ask_for_confirmation;
 	std::string input_file;
@@ -78,7 +83,7 @@ bool confirm_text(const std::string& text)
  * @param filepath The path to the file
  * @return The parsed json data
  */
-json parse_json(const std::string& filepath)
+json parse_from_json(const std::string& filepath)
 {
 	std::ifstream i(filepath, std::ios::in);
 	json j;
@@ -97,7 +102,8 @@ void to_json(json& j, const Player& p)
 	{
 		{"id", p.id},
 		{"elo", p.elo},
-		{"placement", p.placement}
+		{"placement", p.placement},
+		{"has_placed", p.has_placed}
 	};
 }
 
@@ -111,6 +117,7 @@ void from_json(const json& j, Player& p)
 	j.at("id").get_to(p.id);
 	j.at("elo").get_to(p.elo);
 	j.at("placement").get_to(p.placement);
+	j.at("has_placed").get_to(p.has_placed);
 }
 
 /**
@@ -121,6 +128,8 @@ void from_json(const json& j, Player& p)
 void from_json(const json& j, Config& c) 
 {
 	j.at("weight").get_to(c.weight);
+	j.at("standard_deviation").get_to(c.standard_deviation);
+	j.at("average_elo").get_to(c.average_elo);
 	j.at("mega").get_to(c.mega);
 	j.at("ask_for_confirmation").get_to(c.ask_for_confirmation);
 	j.at("input_file").get_to(c.input_file);
@@ -165,10 +174,15 @@ void split_pot(std::vector<Player>& participants, const Config& config)
 	}
 
 	std::vector<Player> winners;
-	for(const auto& p : participants)
+	for(auto& p : participants)
 	{
-		if(p.placement > placementCount || p.placement < 1)
+		if(p.placement > placementCount || p.placement < 1)	
 			continue;
+
+		if(p.has_placed)
+			p.elo -= config.weight;
+		else
+			p.has_placed = true;
 		winners.push_back(p);
 	}
 	
@@ -179,20 +193,18 @@ void split_pot(std::vector<Player>& participants, const Config& config)
 		w.elo -= config.weight;
 	}
 
-	// NOTE: Standard deviation or averageElo may be set to change, but for now, it's hardcoded
-	// int standardDeviation = 200;
-	// double averageElo = 1500;
+	// NOTE: standard_deviation or average_elo may never be changed, but in the original source it was not hardcoded
 	std::vector<double> eloGain;
 	for(char i = 0; i < static_cast<char>(winners.size()); ++i)
 	{
 		eloGain.push_back(config.weight * ratio[i]);
 		for(char j = 0; j < static_cast<char>(participants.size() + draw - 1); ++j)
-			winners[i].elo += (eloGain[i] / (pow(2, (winners[i].elo - 1500) / 200))); 
+			winners[i].elo += (eloGain[i] / (pow(2, (winners[i].elo - config.average_elo) / config.standard_deviation))); 
 	}
 
 	for(auto& p : participants)
 	{
-		if(p.placement > placementCount || p.placement < 1)
+		if((p.placement > placementCount || p.placement < 1) && !p.has_placed)
 			continue;
 		
 		for(const auto& w : winners)
@@ -207,9 +219,9 @@ void split_pot(std::vector<Player>& participants, const Config& config)
 
 int main()
 {
-	const Config config = parse_json("config.json");
+	const Config config = parse_from_json("config.json");
 
-	std::vector<Player> participants = parse_json(config.input_file);
+	std::vector<Player> participants = parse_from_json(config.input_file);
 
 	if(config.ask_for_confirmation)
 	{
