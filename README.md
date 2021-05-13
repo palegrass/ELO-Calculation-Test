@@ -6,7 +6,9 @@ An elo calculator that takes in .json files as an input and outputs another .jso
 
 First, you should configure the config file to your liking, and note that an output file will be created if one doesn't exist on your configured directory.
 
-Weight - A signed integer defining the volatility of the elo.
+### Config File
+
+Weight - An integer defining the volatility of the elo.
 
 Standard Deviation - An integer that stores the standard deviation (unsure if this should ever be changed).
 
@@ -19,6 +21,16 @@ Ask for confirmation - A boolean that determines whether the console window will
 Input file - The directory of the participants input
 
 Output file - The directory of the participants output
+
+### Participants File
+
+Elo - This should be pretty self explanatory.
+
+ID - Not really required, but I'd assume it'd be useful to put a Discord UUID here or something like that.
+
+Placement - The player's placement.
+
+Has Placed - A boolean deciding whether the player has placed or not, will only really need to be edited once since the program will add new players the place for you.
 
 ## Notes
 
