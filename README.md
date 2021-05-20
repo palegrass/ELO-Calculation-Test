@@ -4,33 +4,49 @@ An elo calculator that takes in .json files as an input and outputs another .jso
 
 ## Instructions
 
-First, you should configure the config file to your liking, and note that an output file will be created if one doesn't exist on your configured directory.
+First, you should configure the config and prefab file to your liking, and note that an output file will be created if one doesn't exist on your configured directory.
 
 ### Config File
 
+Prefab Filepath - The directory of the prefab you want to use.
+
+Ask For Confirmation - A boolean that determines whether the console window will do anything besides updating the elo.
+
+Update Leaderboard - A boolean that determines whether the leaderboard .json file will output anything to the .json output.
+
+Format Leaderboard - A boolean that determines whether the leader .json file will output anything to the leaderboard message filepath.
+
+Leaderboard Filepath - The directory of the formatted leaderboard.
+
+Participants Input File - The directory of the participants input.
+
+Participants Output File - The directory of the participants output.
+
+Leaderboard Input File - The directory of the leaderboard input.
+
+Leaderboard Output File - The directory of the leaderboard output.
+
+Date - The date to be used in the leaderboard formatting.
+
+### Participants/Placed Players File(s)
+
+Elo - This should be pretty self explanatory.
+
+Discord ID - The player's discord id. Note that this field IS required if you want to do anything with the leaderboard files.
+
+Placement - The player's placement in the participant file and their elo ranking in the placed players file.
+
+Has Placed - A boolean deciding whether the player has placed or not, will only really need to be edited once since the program will add new players the place for you.
+
+### Prefab Folder/Files
+
 Weight - An integer defining the volatility of the elo.
+
+Ratio - An array of doubles that suggests how many placements will gain elo and how much they gain.
 
 Standard Deviation - An integer that stores the standard deviation (unsure if this should ever be changed).
 
 Average Elo - A double that stores the average elo (unsure if this should ever be changed).
-
-Mega - A boolean defining whether the game is a mega THC or not.
-
-Ask for confirmation - A boolean that determines whether the console window will do anything besides updating the elo.
-
-Input file - The directory of the participants input
-
-Output file - The directory of the participants output
-
-### Participants File
-
-Elo - This should be pretty self explanatory.
-
-ID - Not really required, but I'd assume it'd be useful to put a Discord UUID here or something like that.
-
-Placement - The player's placement.
-
-Has Placed - A boolean deciding whether the player has placed or not, will only really need to be edited once since the program will add new players the place for you.
 
 ## Notes
 
@@ -43,7 +59,5 @@ I recommended using a different output file than the input so you can prevent th
 If you're using Windows, I'm pretty sure running this will give a windows security warning because that has happened with all other files I've ever distributed. If you don't trust me just check the source for yourself, or even build it yourself.
 
 ## Planned Features
-
-If this goes well, I'll probably add a basic prefab system to let the user decide the ratios and placements that are counted in the case of other scenarios than just mega.
 
 I also might make it so the order of players does not matter as long as the placements are correct, but probably not anytime soon.
