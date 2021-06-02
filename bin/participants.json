@@ -1,0 +1,102 @@
+[
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_1",
+        "placement": 1
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_2",
+        "placement": 2
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_3",
+        "placement": 3
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_4",
+        "placement": 4
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_5",
+        "placement": 5
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_6",
+        "placement": 6
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_7",
+        "placement": 7
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_8",
+        "placement": 8
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_9",
+        "placement": 9
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_10",
+        "placement": 10
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_11",
+        "placement": 11
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_12",
+        "placement": 12
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_13",
+        "placement": 13
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_14",
+        "placement": 14
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_15",
+        "placement": 15
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_16",
+        "placement": 16
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_17",
+        "placement": 17
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_18",
+        "placement": 18
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_19",
+        "placement": 19
+    },
+    {
+        "elo": 0.0,
+        "discord_id": "example_player_20",
+        "placement": 20
+    }
+]

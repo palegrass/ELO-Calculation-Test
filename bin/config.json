@@ -1,0 +1,12 @@
+{
+    "prefab_filepath": "prefabs/better_normal.json",
+    "ask_for_confirmation": true,
+    "update_leaderboard": false,
+    "format_leaderboard": false,
+    "leaderboard_message_filepath": "leaderboard.txt",
+    "participants_input_file": "participants.json",
+    "participants_output_file": "participants_2.json",
+    "leaderboard_input_file": "placed_players.json",
+    "leaderboard_output_file": "leaderboard.json",
+    "date": "6/9/2021"
+}

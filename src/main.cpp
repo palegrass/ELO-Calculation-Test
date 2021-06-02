@@ -17,7 +17,6 @@ struct Player
 	std::string discord_id = "player";
 	double elo = 1500;
 	int placement = 0;
-	bool has_placed = false;
 
 	friend std::ostream& operator<<(std::ostream& output, const Player& p);
 };
@@ -33,8 +32,6 @@ std::ostream& operator<<(std::ostream& output, const Player &p)
 	output << "Player ID: " << p.discord_id << std::endl;
 	output << "Player Elo: " << p.elo << std::endl;
 	output << "Player Placement: " << p.placement << std::endl;
-	const std::string _temp = p.has_placed ? "true" : "false";
-	output << "Player Has Placed?: " << _temp << std::endl;
 
 	return output;
 }
@@ -51,17 +48,19 @@ struct Config
 	std::string leaderboard_message_filepath;
 	std::string participants_input_file;
 	std::string participants_output_file;
-	std::string stat_storage_input_file;
-	std::string stat_storage_output_file;
+	std::string leaderboard_input_file;
+	std::string leaderboard_output_file;
 	std::string date;
 };
 
 struct Prefab
 {
-	int weight;
+	int weight = 20;
 	std::vector<double> ratio;
 	int standard_deviation;
 	double average_elo;
+	int elo_gain_cap;
+	bool negatives;
 };
 
 /**
@@ -75,8 +74,7 @@ void to_json(json& j, const Player& p)
 	{
 		{"discord_id", p.discord_id},
 		{"elo", p.elo},
-		{"placement", p.placement},
-		{"has_placed", p.has_placed}
+		{"placement", p.placement}
 	};
 }
 
@@ -90,7 +88,6 @@ void from_json(const json& j, Player& p)
 	j.at("discord_id").get_to(p.discord_id);
 	j.at("elo").get_to(p.elo);
 	j.at("placement").get_to(p.placement);
-	j.at("has_placed").get_to(p.has_placed);
 }
 
 /**
@@ -107,8 +104,8 @@ void from_json(const json& j, Config& c)
 	j.at("leaderboard_message_filepath").get_to(c.leaderboard_message_filepath);
 	j.at("participants_input_file").get_to(c.participants_input_file);
 	j.at("participants_output_file").get_to(c.participants_output_file);
-	j.at("stat_storage_input_file").get_to(c.stat_storage_input_file);
-	j.at("stat_storage_output_file").get_to(c.stat_storage_output_file);
+	j.at("leaderboard_input_file").get_to(c.leaderboard_input_file);
+	j.at("leaderboard_output_file").get_to(c.leaderboard_output_file);
 	j.at("date").get_to(c.date);
 }
 
@@ -123,6 +120,8 @@ void from_json(const json& j, Prefab& p)
 	j.at("ratio").get_to(p.ratio);
 	j.at("standard_deviation").get_to(p.standard_deviation);
 	j.at("average_elo").get_to(p.average_elo);
+	j.at("elo_gain_cap").get_to(p.elo_gain_cap);
+	j.at("negatives").get_to(p.negatives);
 }
 
 /**
@@ -146,7 +145,7 @@ void split_pot(std::vector<Player>& participants, const Config& config, Prefab& 
 					_winner = true;
 			}
 		}
-	} //NOTE: fuck you if you judge how many indents there are
+	} // NOTE: fuck you if you judge how many indents there are
 
 	if(draw)
 	{
@@ -159,12 +158,13 @@ void split_pot(std::vector<Player>& participants, const Config& config, Prefab& 
 	for(auto& p : participants)
 	{
 		if(p.placement > static_cast<char>(prefab.ratio.size()) || p.placement < 1)	
-			continue;
-
-		if(p.has_placed)
+		{ 
 			p.elo -= prefab.weight;
-		else
-			p.has_placed = true;
+			continue;
+		}
+
+		p.elo -= prefab.weight;
+
 		winners.push_back(p);
 	}
 	
@@ -181,12 +181,22 @@ void split_pot(std::vector<Player>& participants, const Config& config, Prefab& 
 	{
 		eloGain.push_back(prefab.weight * prefab.ratio[i]);
 		for(unsigned char j = 0; j < static_cast<unsigned char>(participants.size() + draw - 1); ++j)
-			winners[i].elo += (eloGain[i] / (pow(2, (winners[i].elo - prefab.average_elo) / prefab.standard_deviation))); 
+		{
+			// NOTE: This probably isn't optimal, who cares
+			if(&prefab.elo_gain_cap != 0)
+			{
+				winners[i].elo += (eloGain[i] / (pow(2, ((winners[i].elo - prefab.average_elo < -(1500 - prefab.elo_gain_cap) ? -(1500 - prefab.elo_gain_cap) : winners[i].elo - prefab.average_elo) / prefab.standard_deviation))));
+			}
+			else
+			{
+				winners[i].elo += (eloGain[i] / (pow(2, (winners[i].elo - prefab.average_elo) / prefab.standard_deviation)));
+			}
+		}
 	}
 
 	for(auto& p : participants)
 	{
-		if((p.placement > static_cast<unsigned char>(prefab.ratio.size()) || p.placement < 1) && !p.has_placed)
+		if((p.placement > static_cast<unsigned char>(prefab.ratio.size()) || p.placement < 1))
 			continue;
 		
 		for(const auto& w : winners)
@@ -202,12 +212,13 @@ void split_pot(std::vector<Player>& participants, const Config& config, Prefab& 
 
 /**
  * Function to swap players, only used in sort method
- * @param a First player to swap
- * @param b Second player to swap
+ * @param a First value to swap
+ * @param b Second value to swap
  */
-void swap(Player* a, Player* b)
+template <typename T>
+void swap(T* a, T* b)
 {
-	Player _a = *a;
+	T _a = *a;
 	*a = *b;
 	*b = _a;
 }
@@ -226,7 +237,7 @@ void sort(std::vector<Player>& player_list) {
 		{
 			if(player_list[i].elo > player_list[i + 1].elo)
 			{
-				swap(&player_list[i], &player_list[i + 1]);
+				swap<Player>(&player_list[i], &player_list[i + 1]);
 				swapped = true;
 			}
 		}
@@ -292,7 +303,7 @@ const Config config = parse_from_json("config.json");
 Prefab prefab = parse_from_json(config.prefab_filepath);
 
 std::vector<Player> participants = parse_from_json(config.participants_input_file);
-std::vector<Player> placed_players = parse_from_json(config.stat_storage_input_file);
+std::vector<Player> placed_players = parse_from_json(config.leaderboard_input_file);
 
 int main()
 {
@@ -312,6 +323,10 @@ int main()
 
 	// Split pot
 	split_pot(participants, config, prefab);
+
+	for(auto& p : participants)
+		if(p.elo < 0)
+			p.elo = 0;
 
 	if(config.ask_for_confirmation)
 	{
@@ -344,7 +359,7 @@ int main()
 					_added = true;
 				}
 			}
-			if(!_added && p1.has_placed)
+			if(!_added)
 			{
 				placed_players.push_back(p1);
 			}
@@ -375,6 +390,10 @@ int main()
 			}
 		}
 
+		for(auto& p : placed_players)
+			if(p.elo < 0)
+				p.elo = 0;
+
 		if(config.ask_for_confirmation)
 		{
 			std::cout << std::endl << std::endl << std::endl;
@@ -391,11 +410,25 @@ int main()
 		}
 
 		// Update the elo leaderboard json file
-		parse_to_json(placed_players, config.stat_storage_output_file);
+		parse_to_json(placed_players, config.leaderboard_output_file);
 	}
 
 	if(config.format_leaderboard)
 	{
+		if(config.ask_for_confirmation)
+		{
+			std::cout << std::endl << std::endl << std::endl;
+			for(const auto& p : placed_players)
+			{
+				std::cout << p << std::endl;
+			}
+
+			// Ask for confirmation before formatting the leaderboard
+			if(!confirm_text("Format leaderboard? [y/n]: "))
+			{
+				return 0;
+			}
+		}
 		// Format the leaderboard
 		std::ofstream o(config.leaderboard_message_filepath);
 		o << "ELO Leaderboard as of " << config.date << ":\n";
