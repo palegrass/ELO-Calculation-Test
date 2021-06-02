@@ -46,7 +46,7 @@ Standard Deviation - An integer that stores the standard deviation (unsure if th
 
 Average Elo - A double that stores the average elo (unsure if this should ever be changed).
 
-Negatives - A boolean that determines whether the calculator will output negative numbers for elo. If set to false, negatives won't be outputted
+Negatives - A boolean that determines whether the calculator will output negative numbers for elo. If set to false, negatives won't be outputted.
 
 ## Notes
 
