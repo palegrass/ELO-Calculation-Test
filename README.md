@@ -36,8 +36,6 @@ Discord ID - The player's discord id. Note that this field IS required if you wa
 
 Placement - The player's placement in the participant file and their elo ranking in the placed players file.
 
-Has Placed - A boolean deciding whether the player has placed or not, will only really need to be edited once since the program will add new players the place for you.
-
 ### Prefab Folder/Files
 
 Weight - An integer defining the volatility of the elo.
@@ -47,6 +45,8 @@ Ratio - An array of doubles that suggests how many placements will gain elo and 
 Standard Deviation - An integer that stores the standard deviation (unsure if this should ever be changed).
 
 Average Elo - A double that stores the average elo (unsure if this should ever be changed).
+
+Negatives - A boolean that determines whether the calculator will output negative numbers for elo. If set to false, negatives won't be outputted
 
 ## Notes
 
